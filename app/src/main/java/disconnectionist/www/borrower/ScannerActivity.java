@@ -27,7 +27,10 @@ public class ScannerActivity extends Activity {
     private TextView usernameTextView;
     private TextView itemNameTextView;
 
-    private String action;
+    private String verb;
+
+    private String itemname;
+    private String username;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,11 +38,11 @@ public class ScannerActivity extends Activity {
         setContentView(R.layout.activity_scanner);
 
         Intent intent = getIntent();
-        action = intent.getStringExtra("action");
+        verb = intent.getStringExtra("action");
 
         TextView actionText = (TextView)findViewById(R.id.actionName);
 
-        if (action == "borrow") {
+        if (verb.equalsIgnoreCase("borrow")) {
             actionText.setText("is borrowing");
         }
         else {
@@ -91,22 +94,37 @@ public class ScannerActivity extends Activity {
 
                 if (barcodes.size() != 0) {
                     final String data = barcodes.valueAt(0).displayValue;
+                    final String payload = data.substring(1);
 
                     if (data.toLowerCase().startsWith("u")) {
                         usernameTextView.post(new Runnable() {    // Use the post method of the TextView
                             public void run() {
-                                usernameTextView.setText(data.substring(1));
+                                usernameTextView.setText(payload);
                             }
                         });
                         beep();
+
+                        username = payload;
                     }
                     else if (data.toLowerCase().startsWith("i")) {
                         itemNameTextView.post(new Runnable() {    // Use the post method of the TextView
                             public void run() {
-                                itemNameTextView.setText(data.substring(1));
+                                itemNameTextView.setText(payload);
                             }
                         });
                         beep();
+
+                        itemname = payload;
+                    }
+
+                    if (itemname.length() > 0 && username.length() > 0) {
+                        Intent ret = new Intent();
+                        ret.putExtra("username", username);
+                        ret.putExtra("itemname", itemname);
+                        ret.putExtra("verb", verb);
+
+                        setResult(RESULT_OK, ret);
+                        finish();
                     }
                 }
             }
